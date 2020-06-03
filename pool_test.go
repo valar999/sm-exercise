@@ -17,7 +17,7 @@ func TestCache(t *testing.T) {
 }
 
 func TestSimultaneous(t *testing.T) {
-	m, x := 100, 100
+	m, x := 50, 50
 	var c uint32
 	pool := NewPool()
 	var wg sync.WaitGroup
