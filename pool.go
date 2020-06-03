@@ -64,13 +64,22 @@ func (pool *connPool) getConnection(addr int32) Connection {
 
 func (pool *connPool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	pool.Lock()
-	pool.cache[remotePeer] = c
+	mutex := pool.cacheLock[addr]
+	mutex.Lock()
+	if _, ok := pool.cache[remotePeer]; !ok {
+		pool.cache[remotePeer] = c
+	}
+	mutex.Unlock()
 	pool.Unlock()
 }
 
 func (pool *connPool) shutdown() {
 	pool.Lock()
 	defer pool.Unlock()
+	for _, mutex := range pool.cacheLocks {
+		mutex.Lock()
+		defer mutex.Unlock()
+	}
 	for _, conn := range pool.cache {
 		conn.close()
 	}
