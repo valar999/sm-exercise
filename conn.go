@@ -1,5 +1,10 @@
 package pool
 
+import (
+	"log"
+	"time"
+)
+
 type Connection interface {
 	open()
 	close()

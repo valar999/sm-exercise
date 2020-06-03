@@ -1,9 +1,7 @@
 package pool
 
 import (
-	"log"
 	"sync"
-	"time"
 )
 
 type Pool interface {
@@ -47,7 +45,7 @@ func (pool *connPool) getConnection(addr int32) Connection {
 
 func (pool *connPool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	pool.Lock()
-	mutex := pool.cacheLock[addr]
+	mutex := pool.cacheLocks[remotePeer]
 	mutex.Lock()
 	if _, ok := pool.cache[remotePeer]; !ok {
 		pool.cache[remotePeer] = c
