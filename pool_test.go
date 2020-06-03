@@ -21,6 +21,7 @@ func TestSimultaneous(t *testing.T) {
 			var n int32 = 0
 			for i := 0; i < 1000; i++ {
 				pool.getConnection(n)
+				pool.onNewRemoteConnection(n, &Conn{n})
 				n++
 				if n >= 9 {
 					n = 0
