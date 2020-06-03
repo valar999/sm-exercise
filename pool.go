@@ -10,29 +10,29 @@ type Pool interface {
 	shutdown()
 }
 
-type poolConn struct {
+type Conn struct {
 	sync.Mutex
 	conn Connection
 }
 
-type connPool struct {
+type pool struct {
 	sync.Mutex
-	cache map[int32]*poolConn
+	cache map[int32]*Conn
 }
 
 func NewPool() Pool {
-	return &connPool{
-		cache: make(map[int32]*poolConn),
+	return &pool{
+		cache: make(map[int32]*Conn),
 	}
 }
 
-func (pool *connPool) getConnection(addr int32) Connection {
+func (pool *pool) getConnection(addr int32) Connection {
 	pool.Lock()
 	c, ok := pool.cache[addr]
 	if ok {
 		pool.Unlock()
 	} else {
-		c = &poolConn{conn: &Conn{addr}}
+		c = &Conn{conn: &conn{addr}}
 		pool.cache[addr] = c
 
 		c.Lock()
@@ -43,16 +43,16 @@ func (pool *connPool) getConnection(addr int32) Connection {
 	return c.conn
 }
 
-func (pool *connPool) onNewRemoteConnection(remotePeer int32, c Connection) {
+func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	pool.Lock()
 	_, ok := pool.cache[remotePeer]
 	if !ok {
-		pool.cache[remotePeer] = &poolConn{conn: c}
+		pool.cache[remotePeer] = &Conn{conn: c}
 	}
 	pool.Unlock()
 }
 
-func (pool *connPool) shutdown() {
+func (pool *pool) shutdown() {
 	pool.Lock()
 	defer pool.Unlock()
 	for _, c := range pool.cache {

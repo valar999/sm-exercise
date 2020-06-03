@@ -5,15 +5,15 @@ type Connection interface {
 	close()
 }
 
-type Conn struct {
+type conn struct {
 	addr int32
 }
 
-func (c *Conn) open() {
+func (c *conn) open() {
 	// time.Sleep(time.Second)
 	// log.Println("open connection", c.addr)
 }
 
-func (c *Conn) close() {
+func (c *conn) close() {
 	// log.Println("close connection", c.addr)
 }
