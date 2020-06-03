@@ -1,10 +1,5 @@
 package pool
 
-import (
-	"log"
-	"time"
-)
-
 type Connection interface {
 	open()
 	close()
@@ -15,10 +10,10 @@ type Conn struct {
 }
 
 func (c *Conn) open() {
-	time.Sleep(time.Second)
-	log.Println("open connection", c.addr)
+	// time.Sleep(time.Second)
+	// log.Println("open connection", c.addr)
 }
 
 func (c *Conn) close() {
-	log.Println("close connection", c.addr)
+	// log.Println("close connection", c.addr)
 }
