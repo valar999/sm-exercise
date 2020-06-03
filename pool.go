@@ -6,24 +6,6 @@ import (
 	"time"
 )
 
-type Connection interface {
-	open()
-	close()
-}
-
-type Conn struct {
-	addr int32
-}
-
-func (c *Conn) open() {
-	time.Sleep(time.Second)
-	log.Println("open connection", c.addr)
-}
-
-func (c *Conn) close() {
-	log.Println("close connection", c.addr)
-}
-
 type Pool interface {
 	getConnection(addr int32) Connection
 	onNewRemoteConnection(remotePeer int32, conn Connection)
@@ -32,6 +14,7 @@ type Pool interface {
 
 type connPool struct {
 	sync.Mutex
+	isShutdown bool
 	cache      map[int32]Connection
 	cacheLocks map[int32]*sync.Mutex
 }
@@ -75,6 +58,7 @@ func (pool *connPool) onNewRemoteConnection(remotePeer int32, c Connection) {
 
 func (pool *connPool) shutdown() {
 	pool.Lock()
+	pool.isShutdown = true
 	defer pool.Unlock()
 	for _, mutex := range pool.cacheLocks {
 		mutex.Lock()
