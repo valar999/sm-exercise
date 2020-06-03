@@ -1,6 +1,8 @@
 package pool
 
 import (
+	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -15,24 +17,36 @@ func TestCache(t *testing.T) {
 }
 
 func TestSimultaneous(t *testing.T) {
+	m, x := 100, 100
+	var c uint32
 	pool := NewPool()
-	for i := 0; i < 100; i++ {
+	var wg sync.WaitGroup
+	for i := 0; i < m; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			var n int32 = 0
-			for i := 0; i < 1000; i++ {
+			for i := 0; i < x; i++ {
+				wg.Add(2)
 				go func(n int32) {
+					defer wg.Done()
 					pool.getConnection(n)
+					atomic.AddUint32(&c, 1)
+				}(n)
+				go func(n int32) {
+					defer wg.Done()
+					pool.onNewRemoteConnection(n, &conn{n})
+					atomic.AddUint32(&c, 1)
 				}(n)
 				n++
 				if n >= 9 {
 					n = 0
 				}
-				if i > 900 {
-					go func() {
-						pool.shutdown()
-					}()
+				if atomic.LoadUint32(&c) > uint32(m*x/100*90) {
+					pool.shutdown()
 				}
 			}
 		}()
 	}
+	wg.Wait()
 }
