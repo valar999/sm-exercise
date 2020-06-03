@@ -1,5 +1,7 @@
 package pool
 
+import "time"
+
 type Connection interface {
 	open()
 	close()
@@ -10,7 +12,7 @@ type conn struct {
 }
 
 func (c *conn) open() {
-	// time.Sleep(time.Second)
+	time.Sleep(time.Microsecond * 100)
 	// log.Println("open connection", c.addr)
 }
 
