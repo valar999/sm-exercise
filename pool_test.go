@@ -16,16 +16,13 @@ func TestCache(t *testing.T) {
 
 func TestSimultaneous(t *testing.T) {
 	pool := NewPool()
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100; i++ {
 		go func() {
 			var n int32 = 0
 			for i := 0; i < 1000; i++ {
-				go func() {
+				go func(n int32) {
 					pool.getConnection(n)
-				}()
-				go func() {
-					pool.onNewRemoteConnection(n, &conn{n})
-				}()
+				}(n)
 				n++
 				if n >= 9 {
 					n = 0
