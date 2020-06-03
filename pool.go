@@ -37,7 +37,9 @@ func (pool *connPool) getConnection(addr int32) Connection {
 		mutex.Lock()
 		pool.Unlock()
 		conn.open()
+		pool.Lock()
 		pool.cache[addr] = conn
+		pool.Unlock()
 		mutex.Unlock()
 	}
 	return conn
