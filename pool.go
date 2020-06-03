@@ -12,7 +12,6 @@ type Pool interface {
 
 type connPool struct {
 	sync.Mutex
-	isShutdown bool
 	cache      map[int32]Connection
 	cacheLocks map[int32]*sync.Mutex
 }
@@ -58,7 +57,6 @@ func (pool *connPool) onNewRemoteConnection(remotePeer int32, c Connection) {
 
 func (pool *connPool) shutdown() {
 	pool.Lock()
-	pool.isShutdown = true
 	defer pool.Unlock()
 	for _, mutex := range pool.cacheLocks {
 		mutex.Lock()
