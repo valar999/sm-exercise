@@ -17,7 +17,8 @@ type Conn struct {
 
 type pool struct {
 	sync.Mutex
-	cache map[int32]*Conn
+	cache      map[int32]*Conn
+	isShutdown bool
 }
 
 func NewPool() Pool {
@@ -28,6 +29,10 @@ func NewPool() Pool {
 
 func (pool *pool) getConnection(addr int32) Connection {
 	pool.Lock()
+	if pool.isShutdown {
+		pool.Unlock()
+		return nil
+	}
 	c, ok := pool.cache[addr]
 	if ok {
 		pool.Unlock()
@@ -45,11 +50,14 @@ func (pool *pool) getConnection(addr int32) Connection {
 
 func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	pool.Lock()
+	defer pool.Unlock()
+	if pool.isShutdown {
+		return
+	}
 	_, ok := pool.cache[remotePeer]
 	if !ok {
 		pool.cache[remotePeer] = &Conn{conn: c}
 	}
-	pool.Unlock()
 }
 
 func (pool *pool) shutdown() {
@@ -62,4 +70,5 @@ func (pool *pool) shutdown() {
 	for _, c := range pool.cache {
 		c.conn.close()
 	}
+	pool.isShutdown = true
 }
