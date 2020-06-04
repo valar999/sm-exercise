@@ -75,20 +75,23 @@ func TestNewRemote(t *testing.T) {
 	}
 }
 
-func TestXXX(t *testing.T) {
-	openDelay = time.Second
+func TestSecondGetConnection(t *testing.T) {
+	n := 10
+	openDelay = time.Millisecond * 100
 	log.SetFlags(log.Lmicroseconds)
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(n)
+	start := time.Now()
 
 	pool := NewPool()
-	go func() {
-		pool.getConnection(1)
-		wg.Done()
-	}()
-	go func() {
-		pool.getConnection(1)
-		wg.Done()
-	}()
+	for i := 0; i < n; i++ {
+		go func() {
+			pool.getConnection(1)
+			if time.Since(start) < openDelay {
+				t.Fail()
+			}
+			wg.Done()
+		}()
+	}
 	wg.Wait()
 }
