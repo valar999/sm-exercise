@@ -57,6 +57,7 @@ func TestSimultaneous(t *testing.T) {
 }
 
 func TestNewRemote(t *testing.T) {
+	counter = 0
 	log.SetFlags(log.Lmicroseconds)
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -71,7 +72,7 @@ func TestNewRemote(t *testing.T) {
 	pool.onNewRemoteConnection(1, NewConn(1, testOpenDelay))
 	wg.Wait()
 	if conn.n != 2 {
-		t.Fail()
+		t.Error("have to return conn #2, returns", conn.n)
 	}
 }
 
