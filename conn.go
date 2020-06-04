@@ -10,7 +10,7 @@ type Connection interface {
 	close()
 }
 
-type conn struct {
+type connMock struct {
 	addr      int32
 	n         uint32
 	openDelay time.Duration
@@ -18,19 +18,19 @@ type conn struct {
 
 var counter uint32 = 0
 
-func NewConn(addr int32, openDelay time.Duration) *conn {
-	return &conn{
+func NewConn(addr int32, openDelay time.Duration) *connMock {
+	return &connMock{
 		addr:      addr,
 		openDelay: openDelay,
 		n:         atomic.AddUint32(&counter, 1),
 	}
 }
 
-func (c *conn) open() {
+func (c *connMock) open() {
 	time.Sleep(c.openDelay)
 	// log.Println("open connection", c.addr)
 }
 
-func (c *conn) close() {
+func (c *connMock) close() {
 	// log.Println("close connection", c.addr)
 }

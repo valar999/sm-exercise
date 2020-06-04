@@ -50,17 +50,17 @@ func (pool *pool) getConnection(addr int32) Connection {
 
 		c.Lock()
 		pool.Unlock()
-		log.Println(c.conn.(*conn).n, "conn")
+		log.Println(c.conn.(*connMock).n, "conn")
 		go func(ch chan Connection) {
-			log.Println(c.conn.(*conn).n, "open1")
+			log.Println(c.conn.(*connMock).n, "open1")
 			c.conn.open()
-			log.Println(c.conn.(*conn).n, "open2")
+			log.Println(c.conn.(*connMock).n, "open2")
 			ch <- c.conn
 		}(c.ch)
 		select {
-		case c2 := <-c.ch:
-			log.Println(c.conn.(*conn).n, "ret")
-			c.conn = c2
+		case conn := <-c.ch:
+			log.Println(conn.(*connMock).n, "ret")
+			c.conn = conn
 		}
 		c.Unlock()
 	}
@@ -73,16 +73,16 @@ func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	if pool.isShutdown {
 		return
 	}
-	c2, ok := pool.cache[remotePeer]
+	conn, ok := pool.cache[remotePeer]
 	if ok {
-		log.Println(c.(*conn).n, "new ch<-")
+		log.Println(c.(*connMock).n, "new ch<-")
 		select {
-		case c2.ch <- c:
+		case conn.ch <- c:
 		default:
 		}
-		log.Println(c.(*conn).n, "new ch<-")
+		log.Println(c.(*connMock).n, "new2 ch<-")
 	} else {
-		log.Println(c.(*conn).n, "new store")
+		log.Println(c.(*connMock).n, "new store")
 		pool.cache[remotePeer] = &Conn{conn: c}
 	}
 }
