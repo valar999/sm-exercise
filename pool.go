@@ -67,20 +67,20 @@ func (pool *pool) getConnection(addr int32) Connection {
 	return c.conn
 }
 
-func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
+func (pool *pool) onNewRemoteConnection(remotePeer int32, conn Connection) {
 	pool.Lock()
 	defer pool.Unlock()
 	if pool.isShutdown {
 		return
 	}
-	conn, ok := pool.cache[remotePeer]
+	c, ok := pool.cache[remotePeer]
 	if ok {
 		select {
-		case conn.ch <- c:
+		case c.ch <- conn:
 		default:
 		}
 	} else {
-		pool.cache[remotePeer] = &Conn{conn: c}
+		pool.cache[remotePeer] = &Conn{conn: conn}
 	}
 }
 
