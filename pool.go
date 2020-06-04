@@ -41,14 +41,11 @@ func (pool *pool) getConnection(addr int32) Connection {
 	c, ok := pool.cache[addr]
 	if ok {
 		pool.Unlock()
-		if c.conn == nil {
-			log.Println("get cache, but no conn")
-			c.Lock()
-			c.Unlock()
-		}
+		c.Lock()
+		c.Unlock()
 	} else {
 		c = &Conn{
-			ch:   make(chan Connection, 2),
+			ch: make(chan Connection, 2),
 		}
 		pool.cache[addr] = c
 
