@@ -38,33 +38,40 @@ func (pool *pool) getConnection(addr int32) Connection {
 		pool.Unlock()
 		return nil
 	}
-	// OMG!!! it just return not open connection on second call
 	c, ok := pool.cache[addr]
 	if ok {
 		pool.Unlock()
+		if c.conn == nil {
+			log.Println("get cache, but no conn")
+			c.Lock()
+			c.Unlock()
+		}
 	} else {
 		c = &Conn{
-			conn: NewConn(addr, openDelay),
 			ch:   make(chan Connection, 2),
 		}
 		pool.cache[addr] = c
 
 		c.Lock()
 		pool.Unlock()
-		log.Println(c.conn.(*connMock).n, "conn")
+
+		openConn := NewConn(addr, openDelay)
+		log.Println(openConn.n, "conn")
 		go func(ch chan Connection) {
-			log.Println(c.conn.(*connMock).n, "open1")
-			c.conn.open()
-			log.Println(c.conn.(*connMock).n, "open2")
-			ch <- c.conn
+			log.Println(openConn.n, "open1")
+			openConn.open()
+			log.Println(openConn.n, "open2")
+			ch <- openConn
 		}(c.ch)
 		select {
 		case conn := <-c.ch:
-			log.Println(conn.(*connMock).n, "ret")
-			c.conn = conn
+			pool.Lock()
+			pool.cache[addr].conn = conn
+			pool.Unlock()
 		}
 		c.Unlock()
 	}
+	log.Println(c.conn.(*connMock).n, "ret")
 	return c.conn
 }
 

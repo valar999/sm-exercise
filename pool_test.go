@@ -58,14 +58,37 @@ func TestSimultaneous(t *testing.T) {
 
 func TestNewRemote(t *testing.T) {
 	log.SetFlags(log.Lmicroseconds)
-	pool := NewPool()
 	var wg sync.WaitGroup
 	wg.Add(1)
+
+	var conn *connMock
+	pool := NewPool()
 	go func() {
-		pool.getConnection(1)
+		conn = pool.getConnection(1).(*connMock)
 		wg.Done()
 	}()
 	time.Sleep(time.Millisecond * 50)
 	pool.onNewRemoteConnection(1, NewConn(1, testOpenDelay))
+	wg.Wait()
+	if conn.n != 2 {
+		t.Fail()
+	}
+}
+
+func TestXXX(t *testing.T) {
+	openDelay = time.Second
+	log.SetFlags(log.Lmicroseconds)
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	pool := NewPool()
+	go func() {
+		pool.getConnection(1)
+		wg.Done()
+	}()
+	go func() {
+		pool.getConnection(1)
+		wg.Done()
+	}()
 	wg.Wait()
 }
