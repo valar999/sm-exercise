@@ -1,7 +1,6 @@
 package pool
 
 import (
-	"log"
 	"sync"
 	"time"
 )
@@ -53,11 +52,8 @@ func (pool *pool) getConnection(addr int32) Connection {
 		pool.Unlock()
 
 		openConn := NewConn(addr, openDelay)
-		log.Println(openConn.n, "conn")
 		go func(ch chan Connection) {
-			log.Println(openConn.n, "open1")
 			openConn.open()
-			log.Println(openConn.n, "open2")
 			ch <- openConn
 		}(c.ch)
 		select {
@@ -68,7 +64,6 @@ func (pool *pool) getConnection(addr int32) Connection {
 		}
 		c.Unlock()
 	}
-	log.Println(c.conn.(*connMock).n, "ret")
 	return c.conn
 }
 
@@ -80,14 +75,11 @@ func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	}
 	conn, ok := pool.cache[remotePeer]
 	if ok {
-		log.Println(c.(*connMock).n, "new ch<-")
 		select {
 		case conn.ch <- c:
 		default:
 		}
-		log.Println(c.(*connMock).n, "new2 ch<-")
 	} else {
-		log.Println(c.(*connMock).n, "new store")
 		pool.cache[remotePeer] = &Conn{conn: c}
 	}
 }
