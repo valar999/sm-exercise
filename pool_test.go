@@ -4,6 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestCache(t *testing.T) {
@@ -35,7 +36,7 @@ func TestSimultaneous(t *testing.T) {
 				}(n)
 				go func(n int32) {
 					defer wg.Done()
-					pool.onNewRemoteConnection(n, &conn{n})
+					pool.onNewRemoteConnection(n, &conn{n, time.Microsecond * 100})
 					atomic.AddUint32(&c, 1)
 				}(n)
 				n++

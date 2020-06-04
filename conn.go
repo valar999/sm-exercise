@@ -8,11 +8,12 @@ type Connection interface {
 }
 
 type conn struct {
-	addr int32
+	addr      int32
+	openDelay time.Duration
 }
 
 func (c *conn) open() {
-	time.Sleep(time.Microsecond * 100)
+	time.Sleep(c.openDelay)
 	// log.Println("open connection", c.addr)
 }
 

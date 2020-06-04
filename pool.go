@@ -2,6 +2,7 @@ package pool
 
 import (
 	"sync"
+	"time"
 )
 
 type Pool interface {
@@ -37,7 +38,7 @@ func (pool *pool) getConnection(addr int32) Connection {
 	if ok {
 		pool.Unlock()
 	} else {
-		c = &Conn{conn: &conn{addr}}
+		c = &Conn{conn: &conn{addr, time.Microsecond * 100}}
 		pool.cache[addr] = c
 
 		c.Lock()
