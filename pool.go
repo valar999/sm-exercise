@@ -2,7 +2,6 @@ package pool
 
 import (
 	"sync"
-	"log"
 	"time"
 )
 
@@ -14,6 +13,7 @@ type Pool interface {
 
 type Conn struct {
 	sync.Mutex
+	ch chan Connection
 	conn Connection
 }
 
@@ -39,28 +39,37 @@ func (pool *pool) getConnection(addr int32) Connection {
 	if ok {
 		pool.Unlock()
 	} else {
-		c = &Conn{conn: &conn{addr, time.Microsecond * 1000}}
+		c = &Conn{
+			conn: &conn{addr, time.Millisecond * 3000},
+			ch: make(chan Connection, 2),
+		}
 		pool.cache[addr] = c
 
 		c.Lock()
 		pool.Unlock()
-		log.Println("open")
-		c.conn.open()
-		log.Println("open2")
+		go func(ch chan Connection) {
+			c.conn.open()
+			ch <- c.conn
+		}(c.ch)
+		select {
+		case conn := <-c.ch:
+			c.conn = conn
+		}
 		c.Unlock()
 	}
 	return c.conn
 }
 
 func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
-	log.Println("onNewRemoteConnection")
 	pool.Lock()
 	defer pool.Unlock()
 	if pool.isShutdown {
 		return
 	}
-	_, ok := pool.cache[remotePeer]
-	if !ok {
+	conn, ok := pool.cache[remotePeer]
+	if ok {
+		conn.ch <-c
+	} else {
 		pool.cache[remotePeer] = &Conn{conn: c}
 	}
 }

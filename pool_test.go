@@ -57,8 +57,7 @@ func TestNewRemote(t *testing.T) {
 	go func() {
 		pool.getConnection(1)
 	}()
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Millisecond * 1000)
 	pool.onNewRemoteConnection(1, &conn{})
-	pool.shutdown()
 }
 
