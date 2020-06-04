@@ -51,3 +51,14 @@ func TestSimultaneous(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestNewRemote(t *testing.T) {
+	pool := NewPool()
+	go func() {
+		pool.getConnection(1)
+	}()
+	time.Sleep(time.Millisecond * 100)
+	pool.onNewRemoteConnection(1, &conn{})
+	pool.shutdown()
+}
+

@@ -2,6 +2,7 @@ package pool
 
 import (
 	"sync"
+	"log"
 	"time"
 )
 
@@ -38,18 +39,21 @@ func (pool *pool) getConnection(addr int32) Connection {
 	if ok {
 		pool.Unlock()
 	} else {
-		c = &Conn{conn: &conn{addr, time.Microsecond * 100}}
+		c = &Conn{conn: &conn{addr, time.Microsecond * 1000}}
 		pool.cache[addr] = c
 
 		c.Lock()
 		pool.Unlock()
+		log.Println("open")
 		c.conn.open()
+		log.Println("open2")
 		c.Unlock()
 	}
 	return c.conn
 }
 
 func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
+	log.Println("onNewRemoteConnection")
 	pool.Lock()
 	defer pool.Unlock()
 	if pool.isShutdown {
