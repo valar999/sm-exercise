@@ -1,9 +1,9 @@
 package pool
 
 import (
+	"log"
 	"sync"
 	"time"
-	"log"
 )
 
 var openDelay = time.Millisecond * 100

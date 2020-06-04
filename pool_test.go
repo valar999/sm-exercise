@@ -1,11 +1,11 @@
 package pool
 
 import (
+	"log"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
-	"log"
 )
 
 const testOpenDelay = time.Millisecond * 100
