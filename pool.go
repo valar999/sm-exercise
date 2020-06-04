@@ -13,7 +13,7 @@ type Pool interface {
 
 type Conn struct {
 	sync.Mutex
-	ch chan Connection
+	ch   chan Connection
 	conn Connection
 }
 
@@ -41,7 +41,7 @@ func (pool *pool) getConnection(addr int32) Connection {
 	} else {
 		c = &Conn{
 			conn: &conn{addr, time.Millisecond * 3000},
-			ch: make(chan Connection, 2),
+			ch:   make(chan Connection, 2),
 		}
 		pool.cache[addr] = c
 
@@ -68,7 +68,7 @@ func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	}
 	conn, ok := pool.cache[remotePeer]
 	if ok {
-		conn.ch <-c
+		conn.ch <- c
 	} else {
 		pool.cache[remotePeer] = &Conn{conn: c}
 	}
