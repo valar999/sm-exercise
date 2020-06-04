@@ -38,6 +38,7 @@ func (pool *pool) getConnection(addr int32) Connection {
 		pool.Unlock()
 		return nil
 	}
+	// OMG!!! it just return not open connection on second call
 	c, ok := pool.cache[addr]
 	if ok {
 		pool.Unlock()
