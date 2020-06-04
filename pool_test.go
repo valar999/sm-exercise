@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+	"log"
 )
 
 const testOpenDelay = time.Millisecond * 100
@@ -20,7 +21,8 @@ func TestCache(t *testing.T) {
 }
 
 func TestSimultaneous(t *testing.T) {
-	m, x := 1, 10
+	log.SetFlags(log.Lmicroseconds)
+	m, x := 50, 50
 	var c uint32
 	pool := NewPool()
 	var wg sync.WaitGroup

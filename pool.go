@@ -76,7 +76,10 @@ func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	c2, ok := pool.cache[remotePeer]
 	if ok {
 		log.Println(c.(*conn).n, "new ch<-")
-		c2.ch <- c
+		select {
+		case c2.ch <- c:
+		default:
+		}
 		log.Println(c.(*conn).n, "new ch<-")
 	} else {
 		log.Println(c.(*conn).n, "new store")
