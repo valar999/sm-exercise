@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const testOpenDelay = time.Millisecond * 100
+
 func TestCache(t *testing.T) {
 	pool := NewPool()
 	conn1 := pool.getConnection(1)
@@ -18,7 +20,7 @@ func TestCache(t *testing.T) {
 }
 
 func TestSimultaneous(t *testing.T) {
-	m, x := 50, 50
+	m, x := 1, 10
 	var c uint32
 	pool := NewPool()
 	var wg sync.WaitGroup
@@ -36,7 +38,7 @@ func TestSimultaneous(t *testing.T) {
 				}(n)
 				go func(n int32) {
 					defer wg.Done()
-					pool.onNewRemoteConnection(n, &conn{n, time.Microsecond * 100})
+					pool.onNewRemoteConnection(n, NewConn(n, testOpenDelay))
 					atomic.AddUint32(&c, 1)
 				}(n)
 				n++
@@ -58,5 +60,5 @@ func TestNewRemote(t *testing.T) {
 		pool.getConnection(1)
 	}()
 	time.Sleep(time.Millisecond * 1000)
-	pool.onNewRemoteConnection(1, &conn{})
+	pool.onNewRemoteConnection(1, NewConn(1, testOpenDelay))
 }

@@ -3,7 +3,10 @@ package pool
 import (
 	"sync"
 	"time"
+	"log"
 )
+
+var openDelay = time.Millisecond * 100
 
 type Pool interface {
 	getConnection(addr int32) Connection
@@ -40,20 +43,24 @@ func (pool *pool) getConnection(addr int32) Connection {
 		pool.Unlock()
 	} else {
 		c = &Conn{
-			conn: &conn{addr, time.Millisecond * 3000},
+			conn: NewConn(addr, openDelay),
 			ch:   make(chan Connection, 2),
 		}
 		pool.cache[addr] = c
 
 		c.Lock()
 		pool.Unlock()
+		log.Println(c.conn.(*conn).n, "conn")
 		go func(ch chan Connection) {
+			log.Println(c.conn.(*conn).n, "open1")
 			c.conn.open()
+			log.Println(c.conn.(*conn).n, "open2")
 			ch <- c.conn
 		}(c.ch)
 		select {
-		case conn := <-c.ch:
-			c.conn = conn
+		case c2 := <-c.ch:
+			log.Println(c.conn.(*conn).n, "ret")
+			c.conn = c2
 		}
 		c.Unlock()
 	}
@@ -66,10 +73,13 @@ func (pool *pool) onNewRemoteConnection(remotePeer int32, c Connection) {
 	if pool.isShutdown {
 		return
 	}
-	conn, ok := pool.cache[remotePeer]
+	c2, ok := pool.cache[remotePeer]
 	if ok {
-		conn.ch <- c
+		log.Println(c.(*conn).n, "new ch<-")
+		c2.ch <- c
+		log.Println(c.(*conn).n, "new ch<-")
 	} else {
+		log.Println(c.(*conn).n, "new store")
 		pool.cache[remotePeer] = &Conn{conn: c}
 	}
 }
