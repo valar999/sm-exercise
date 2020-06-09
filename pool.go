@@ -71,11 +71,11 @@ func (pool *pool) getConnection(addr int32) Connection {
 		case conn := <-c.ch:
 			// got a connection from open() or from onNew..
 			// lock Pool to store connection
+			c.Unlock()
 			pool.Lock()
 			pool.cache[addr].conn = conn
 			pool.Unlock()
 		}
-		c.Unlock()
 	}
 	return c.conn
 }
